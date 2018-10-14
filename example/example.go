@@ -1,9 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-
-	"github.com/jasonlvhit/gocron"
+	"github.com/XuefengHuang/gocron"
 )
 
 func task() {
@@ -18,16 +18,6 @@ func main() {
 	// Do jobs with params
 	gocron.Every(1).Second().Do(taskWithParams, 1, "hello")
 
-	// Do jobs without params
-	gocron.Every(1).Second().Do(task)
-	gocron.Every(2).Seconds().Do(task)
-	gocron.Every(1).Minute().Do(task)
-	gocron.Every(2).Minutes().Do(task)
-	gocron.Every(1).Hour().Do(task)
-	gocron.Every(2).Hours().Do(task)
-	gocron.Every(1).Day().Do(task)
-	gocron.Every(2).Days().Do(task)
-
 	// Do jobs on specific weekday
 	gocron.Every(1).Monday().Do(task)
 	gocron.Every(1).Thursday().Do(task)
@@ -40,8 +30,26 @@ func main() {
 	_, time := gocron.NextRun()
 	fmt.Println(time)
 
-	// gocron.Remove(task)
-	// gocron.Clear()
+	jobs := gocron.GetJobs()
+	fmt.Println(jobs[2].Id)
+	b, err := json.Marshal(jobs)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(b))
+
+	gocron.RemoveById(1)
+	gocron.RemoveById(2)
+
+	jobs = gocron.GetJobs()
+	b, err = json.Marshal(jobs)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(b))
+	//gocron.Clear()
 
 	// function Start start all the pending jobs
 	<-gocron.Start()
