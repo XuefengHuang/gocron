@@ -375,6 +375,10 @@ type Scheduler struct {
 
 	// Size of jobs which jobs holding.
 	size int
+
+	running bool
+
+	stop chan struct{}
 }
 
 // Scheduler implements the sort.Interface{} for sorting jobs, by the time nextRun
@@ -393,7 +397,7 @@ func (s *Scheduler) Less(i, j int) bool {
 
 // Create a new scheduler
 func NewScheduler() *Scheduler {
-	return &Scheduler{[MAXJOBNUM]*Job{}, 0}
+	return &Scheduler{[MAXJOBNUM]*Job{}, 0, false, nil}
 }
 
 // Get the current runnable jobs, which shouldRun is True
@@ -513,22 +517,29 @@ func (s *Scheduler) Clear() {
 
 // Start all the pending jobs
 // Add seconds ticker
-func (s *Scheduler) Start() chan bool {
-	stopped := make(chan bool, 1)
+func (s *Scheduler) Start() {
 	ticker := time.NewTicker(1 * time.Second)
-
+	s.running = true
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
 				s.RunPending()
-			case <-stopped:
+			case <-s.stop:
+				ticker.Stop()
 				return
 			}
 		}
 	}()
+}
 
-	return stopped
+// Stop stops the cron scheduler if it is running; otherwise it does nothing.
+func (s *Scheduler) Stop() {
+	if !s.running {
+		return
+	}
+	s.stop <- struct{}{}
+	s.running = false
 }
 
 // The following methods are shortcuts for not having to
@@ -568,8 +579,13 @@ func RunAllwithDelay(d int) {
 }
 
 // Run all jobs that are scheduled to run
-func Start() chan bool {
-	return defaultScheduler.Start()
+func Start() {
+	defaultScheduler.Start()
+}
+
+// Run all jobs that are scheduled to run
+func Stop() {
+	defaultScheduler.Stop()
 }
 
 // Clear

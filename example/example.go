@@ -38,9 +38,13 @@ func main() {
 		return
 	}
 	fmt.Println(string(b))
+	gocron.Start()
+	gocron.Clear()
 
-	gocron.RemoveById(1)
-	gocron.RemoveById(2)
+	//gocron.RemoveById(1)
+	//gocron.RemoveById(2)
+	//gocron.RemoveById(3)
+	//gocron.RemoveById(4)
 
 	jobs = gocron.GetJobs()
 	b, err = json.Marshal(jobs)
@@ -49,14 +53,15 @@ func main() {
 		return
 	}
 	fmt.Println(string(b))
-	//gocron.Clear()
-
-	// function Start start all the pending jobs
-	<-gocron.Start()
-
 	// also , you can create a your new scheduler,
 	// to run two scheduler concurrently
-	s := gocron.NewScheduler()
-	s.Every(3).Seconds().Do(task)
-	<-s.Start()
+	/*
+		s := gocron.NewScheduler()
+		s.Every(3).Seconds().Do(task)
+		<-s.Start()
+	*/
+	gocron.Stop()
+	stopped := make(chan bool, 1)
+	// function Start start all the pending jobs
+	<-stopped
 }
