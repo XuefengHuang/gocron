@@ -32,7 +32,7 @@ import (
 var loc = time.Local
 
 // job id start at 0
-var id_mark = 0
+var id_mark = 1
 
 // Change the time location
 func ChangeLoc(newLocation *time.Location) {
@@ -496,15 +496,13 @@ func (s *Scheduler) RemoveById(id int) {
 	i := 0
 	for ; i < s.size; i++ {
 		if s.jobs[i].Id == id {
-			break
+			for j := (i + 1); j < s.size; j++ {
+				s.jobs[i] = s.jobs[j]
+				i++
+			}
+			s.size = s.size - 1
 		}
 	}
-
-	for j := (i + 1); j < s.size; j++ {
-		s.jobs[i] = s.jobs[j]
-		i++
-	}
-	s.size = s.size - 1
 }
 
 // Delete all scheduled jobs
